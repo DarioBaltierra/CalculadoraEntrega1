@@ -1,0 +1,110 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package calculadora2;
+import calculadora2.VCalculadora;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.net.Socket;
+import javax.swing.DefaultListModel;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JOptionPane;
+
+/**
+ *
+ * @author smile
+ */
+public class MCalcualdora extends Thread{
+
+    private int port;
+    private String url;
+    private Socket s;
+    private boolean bConectado;
+    VCalculadora ventana;
+    private String nick;
+    /** Creates a new instance of MCalculadora */
+    public MCalcualdora(int port, String url, String nick, VCalculadora ventana) {
+        this.port=port;
+        this.url=url;
+        this.ventana=ventana;
+        this.nick=nick;
+    }
+    
+    public void run(){
+        try{
+            s=new Socket(url, port);
+            DataInputStream dis=new DataInputStream(s.getInputStream());
+            enviarTrama(1, nick);
+            bConectado=true;
+            while(bConectado){
+                int nCodigo =dis.readInt();
+                String sTrama=dis.readUTF();
+                switch(nCodigo){
+                    case 1:
+                        ventana.nuevaPersona(sTrama);
+                        break;
+                    case 2:
+                        //ventana.mensajeRecibido(sTrama);
+                        break;
+                    case 3:
+                        try{
+                            int nPos = Integer.parseInt(sTrama);
+                            ventana.borrarPersona(nPos);
+                        }catch(Exception e2){
+                        }
+                        break;
+                }
+            }
+            //JOptionPane.showMessageDialog(ventana, "Se ha podido conectar");
+        }catch(Exception e){
+            JOptionPane.showMessageDialog(ventana, "No se pudo establecer la conexión");
+        }
+    }
+        
+   /* public void run(){
+        try{
+            s=new Socket(url, port);
+            DataInputStream dis=new DataInputStream(s.getInputStream()); //////objectinoutstream objectoutputstream
+            enviarTrama(1,nick);
+            bConectado=true;
+            while (bConectado){
+                String sMensaje=dis.readUTF();
+                ventana.mensajeRecibido(sMensaje);
+            }
+            //JOptionPane.showMessageDialog(ventana, "Se ha podido conectar");
+        }catch(Exception e){
+            JOptionPane.showMessageDialog(ventana, "No se pudo establecer la conexión");
+        }
+    } */   
+    
+   /* public void enviarMensaje(String sMensaje){
+        //enviarTrama(2, sMensaje);
+        try{
+            DataOutputStream dos=new DataOutputStream(s.getOutputStream());
+           // dos.writeInt(nCodigo);
+            dos.writeUTF(sMensaje);
+        }catch(Exception e){
+            JOptionPane.showMessageDialog(ventana, "No se pudo enviar el mensaje");
+        }
+    }*/
+    
+    public void enviarMensaje(String sMensaje){
+        enviarTrama(2, sMensaje);
+    }
+    
+    
+    
+    public void enviarTrama(int nCodigo, String sTrama){
+        try{
+            DataOutputStream dos=new DataOutputStream(s.getOutputStream());
+            dos.writeInt(nCodigo);
+            dos.writeUTF(sTrama);
+        }catch(Exception e){
+            JOptionPane.showMessageDialog(ventana, "No se pudo enviar el mensaje");
+        }
+        
+    }
+}
